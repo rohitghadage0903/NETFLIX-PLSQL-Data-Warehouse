@@ -1,10 +1,6 @@
--- ============================================================================
--- 05_TEST_CASES.SQL: Sample Mock Load, Pipeline Run & Verification Blocks
--- ============================================================================
-
 SET SERVEROUTPUT ON SIZE UNLIMITED;
 
--- 1. Ingest Synthetic Mock Records into Staging
+
 BEGIN
     DELETE FROM netflix_staging;
 
@@ -20,7 +16,7 @@ BEGIN
     INSERT INTO netflix_staging (show_id, type, title, director, cast, country, date_added, release_year, rating, duration, listed_in, description)
     VALUES ('s4', 'Movie', 'Midnight Mass', 'Mike Flanagan', 'Kate Siegel, Zach Gilford, Hamish Linklater', 'United States', 'September 24, 2021', '2021', 'TV-MA', '1 Season', 'TV Dramas, TV Horror, TV Mysteries', 'An isolated island community experiences miraculous events.');
 
-    -- Deliberate bad record to test duration/year parsing & error isolation
+
     INSERT INTO netflix_staging (show_id, type, title, director, cast, country, date_added, release_year, rating, duration, listed_in, description)
     VALUES ('s_err', 'Movie', 'Malformed Year Title', 'Unknown Director', 'Actor A', 'India', 'Invalid Date', 'Year99', 'PG', '120 min', 'Comedies', 'Faulty release year record.');
 
@@ -29,7 +25,6 @@ BEGIN
 END;
 /
 
--- 2. Execute ETL Pipeline
 DECLARE
     v_batch_id VARCHAR2(64) := 'BATCH-' || TO_CHAR(SYSDATE, 'YYYYMMDD-HH24MISS');
 BEGIN
@@ -39,7 +34,6 @@ BEGIN
 END;
 /
 
--- 3. Run Analytics & Assert Schema Outputs
 DECLARE
     v_cur       pkg_netflix_analytics.t_cursor;
     v_name      VARCHAR2(150);
@@ -47,7 +41,7 @@ DECLARE
     v_genre     VARCHAR2(100);
     v_total     NUMBER;
     
-    -- Record holders for paginated catalog
+
     v_show_id   VARCHAR2(20);
     v_title     VARCHAR2(500);
     v_type      VARCHAR2(30);
@@ -100,7 +94,6 @@ BEGIN
 END;
 /
 
--- 4. Verify Triggers and Auditing Functionality
 DECLARE
     v_audit_count NUMBER;
 BEGIN
@@ -120,7 +113,6 @@ BEGIN
 END;
 /
 
--- 5. Inspect Verification Counts
 SELECT 'types' AS table_name, COUNT(*) AS cnt FROM types
 UNION ALL
 SELECT 'directors', COUNT(*) FROM directors
