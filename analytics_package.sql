@@ -1,28 +1,22 @@
--- ============================================================================
--- 03_ANALYTICS_PACKAGE.SQL: Analytics, Ref Cursors, Pagination, Exceptions
--- ============================================================================
+
 
 CREATE OR REPLACE PACKAGE pkg_netflix_analytics AS
-    -- Custom Exceptions
     e_title_not_found     EXCEPTION;
     e_invalid_page_param  EXCEPTION;
     PRAGMA EXCEPTION_INIT(e_title_not_found, -20001);
     PRAGMA EXCEPTION_INIT(e_invalid_page_param, -20002);
 
-    -- Cursor Return Types
     TYPE t_cursor IS REF CURSOR;
 
-    -- Metric Functions
     FUNCTION get_content_count_by_country(p_country_name IN VARCHAR2) RETURN NUMBER;
     
     FUNCTION get_top_contributors(
-        p_role_type IN VARCHAR2 DEFAULT 'ACTOR', -- 'ACTOR' or 'DIRECTOR'
+        p_role_type IN VARCHAR2 DEFAULT 'ACTOR', 
         p_limit     IN NUMBER DEFAULT 5
     ) RETURN t_cursor;
 
     FUNCTION get_yearly_genre_distribution(p_release_year IN NUMBER) RETURN t_cursor;
 
-    -- Paginated & Filtered Catalog Procedure
     PROCEDURE get_catalog_paginated(
         p_genre_name   IN VARCHAR2 DEFAULT NULL,
         p_type_name    IN VARCHAR2 DEFAULT NULL,
@@ -110,7 +104,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_analytics AS
 
         v_offset := (p_page_num - 1) * p_page_size;
 
-        -- Count total matches
         SELECT COUNT(DISTINCT t.title_id)
         INTO o_total_rows
         FROM titles t
@@ -121,7 +114,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_analytics AS
           AND (p_type_name IS NULL OR UPPER(tp.type_name) = UPPER(TRIM(p_type_name)))
           AND (p_release_year IS NULL OR t.release_year = p_release_year);
 
-        -- Fetch paginated slice
         OPEN o_results FOR
             SELECT t.show_id,
                    t.title,
