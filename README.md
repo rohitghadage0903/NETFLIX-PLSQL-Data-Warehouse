@@ -21,11 +21,11 @@ This project normalizes denormalized media catalog data into a clean **Third Nor
 
 | File Name | Description |
 | :--- | :--- |
-| `01_schema.sql` | DDL scripts for Staging, 3NF Master/Junction Tables, and Audit structures. |
-| `02_etl_package.sql` | PL/SQL package for string tokenization, data cleaning, and upserts. |
-| `03_analytics_package.sql` | PL/SQL package containing analytical functions, ref cursors, and pagination. |
-| `04_triggers.sql` | Row-level triggers for automatic timestamps and history tracking. |
-| `05_test_cases.sql` | End-to-end test execution block and schema validation queries. |
+| `schema.sql` | DDL scripts for Staging, 3NF Master/Junction Tables, and Audit structures. |
+| `etl_package.sql` | PL/SQL package for string tokenization, data cleaning, and upserts. |
+| `analytics_package.sql` | PL/SQL package containing analytical functions, ref cursors, and pagination. |
+| `triggers.sql` | Row-level triggers for automatic timestamps and history tracking. |
+| `test_cases.sql` | End-to-end test execution block and schema validation queries. |
 
 ---
 
