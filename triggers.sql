@@ -1,8 +1,3 @@
--- ============================================================================
--- 04_TRIGGERS.SQL: Audit Logging and System Maintenance
--- ============================================================================
-
--- Row-level trigger to sync updated_at on TITLES
 CREATE OR REPLACE TRIGGER trg_titles_biu
 BEFORE INSERT OR UPDATE ON titles
 FOR EACH ROW
@@ -16,7 +11,6 @@ BEGIN
 END;
 /
 
--- Audit trigger logging mutations into TITLES_AUDIT_LOG
 CREATE OR REPLACE TRIGGER trg_titles_audit
 AFTER INSERT OR UPDATE OR DELETE ON titles
 FOR EACH ROW
