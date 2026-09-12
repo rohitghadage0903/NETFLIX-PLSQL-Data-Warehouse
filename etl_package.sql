@@ -1,9 +1,5 @@
--- ============================================================================
--- 02_ETL_PACKAGE.SQL (FIXED)
--- ============================================================================
 
 CREATE OR REPLACE PACKAGE pkg_netflix_etl AS
-    -- Exposed so the SQL engine can execute it
     FUNCTION parse_date_added(p_raw_date IN VARCHAR2) RETURN DATE;
 
     PROCEDURE log_error(
@@ -71,7 +67,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         c_module CONSTANT VARCHAR2(50) := 'PKG_NETFLIX_ETL.PROCESS_STAGING';
         v_parsed_date DATE;
     BEGIN
-        -- 1. Types
+        
         MERGE INTO types tgt
         USING (
             SELECT DISTINCT TRIM(type) AS type_name
@@ -82,7 +78,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         WHEN NOT MATCHED THEN
             INSERT (type_name) VALUES (src.type_name);
 
-        -- 2. Directors
+        
         MERGE INTO directors tgt
         USING (
             SELECT DISTINCT TRIM(REGEXP_SUBSTR(director, '[^,]+', 1, LEVEL)) AS dir_name
@@ -95,7 +91,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         WHEN NOT MATCHED THEN
             INSERT (director_name) VALUES (src.dir_name);
 
-        -- 3. Actors
+        
         MERGE INTO actors tgt
         USING (
             SELECT DISTINCT TRIM(REGEXP_SUBSTR(cast, '[^,]+', 1, LEVEL)) AS act_name
@@ -108,7 +104,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         WHEN NOT MATCHED THEN
             INSERT (actor_name) VALUES (src.act_name);
 
-        -- 4. Genres
+        
         MERGE INTO genres tgt
         USING (
             SELECT DISTINCT TRIM(REGEXP_SUBSTR(listed_in, '[^,]+', 1, LEVEL)) AS g_name
@@ -121,7 +117,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         WHEN NOT MATCHED THEN
             INSERT (genre_name) VALUES (src.g_name);
 
-        -- 5. Countries
+        
         MERGE INTO countries tgt
         USING (
             SELECT DISTINCT TRIM(REGEXP_SUBSTR(country, '[^,]+', 1, LEVEL)) AS c_name
@@ -134,7 +130,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
         WHEN NOT MATCHED THEN
             INSERT (country_name) VALUES (src.c_name);
 
-        -- 6. Titles
+        
         FOR r IN (
             SELECT s.show_id,
                    t.type_id,
@@ -150,7 +146,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
             WHERE s.show_id IS NOT NULL AND s.title IS NOT NULL
         ) LOOP
             BEGIN
-                -- Resolve date in PL/SQL variable prior to SQL invocation
                 v_parsed_date := parse_date_added(r.date_added);
 
                 MERGE INTO titles tgt
@@ -189,8 +184,8 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
             END;
         END LOOP;
 
-        -- 7. Junction Tables
-        INSERT /*+ APPEND */ INTO title_directors (title_id, director_id)
+        
+        INSERT INTO title_directors (title_id, director_id)
         SELECT DISTINCT t.title_id, d.director_id
         FROM (
             SELECT show_id, TRIM(REGEXP_SUBSTR(director, '[^,]+', 1, LEVEL)) AS dir_name
@@ -207,7 +202,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
             WHERE x.title_id = t.title_id AND x.director_id = d.director_id
         );
 
-        INSERT /*+ APPEND */ INTO title_actors (title_id, actor_id)
+        INSERT INTO title_actors (title_id, actor_id)
         SELECT DISTINCT t.title_id, a.actor_id
         FROM (
             SELECT show_id, TRIM(REGEXP_SUBSTR(cast, '[^,]+', 1, LEVEL)) AS act_name
@@ -224,7 +219,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
             WHERE x.title_id = t.title_id AND x.actor_id = a.actor_id
         );
 
-        INSERT /*+ APPEND */ INTO title_genres (title_id, genre_id)
+        INSERT INTO title_genres (title_id, genre_id)
         SELECT DISTINCT t.title_id, g.genre_id
         FROM (
             SELECT show_id, TRIM(REGEXP_SUBSTR(listed_in, '[^,]+', 1, LEVEL)) AS g_name
@@ -241,7 +236,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_netflix_etl AS
             WHERE x.title_id = t.title_id AND x.genre_id = g.genre_id
         );
 
-        INSERT /*+ APPEND */ INTO title_countries (title_id, country_id)
+        INSERT INTO title_countries (title_id, country_id)
         SELECT DISTINCT t.title_id, c.country_id
         FROM (
             SELECT show_id, TRIM(REGEXP_SUBSTR(country, '[^,]+', 1, LEVEL)) AS cntry_name
